@@ -1,4 +1,4 @@
-local TimeUtilityModule = {}
+local TimeModule = {}
 
 local MarkedTimestampNames = {}
 local MarkedTimestamps = {}
@@ -50,8 +50,8 @@ local function CheckForYearAndMonthUnitUpdate()
 	local DaysInYearResult = TotalDaysInYear
 
 	if DaysInMonthResult ~= 0 and DaysInYearResult ~= 0 then
-		YearUnit = DaysInYearResult
-		MonthUnit = DaysInMonthResult
+		YearUnit = DayUnit * DaysInYearResult
+		MonthUnit = DayUnit * DaysInMonthResult
 	else
 		warn(OutputMark .. 'Failed to update YearUnit and MonthUnit -> DaysInMonthResult: ' .. tostring(DaysInMonthResult) .. ', DaysInYearResult: ' .. tostring(DaysInYearResult))
 	end
@@ -88,14 +88,14 @@ function TimeModule.FormatSecondToTime(Seconds)
 	Seconds = tonumber(Seconds)
 
 	if Seconds < 0 then
-			error("Cannot format number less than 0!!")
-			return
+		error("Cannot format number less than 0!!")
+		return
 	elseif Seconds == math.huge then
-			error("Cannot format math.huge to time!!")
-			return
+		error("Cannot format math.huge to time!!")
+		return
 	elseif Seconds == nil then
-			error("Argument #1 is not a number!")
-			return
+		error("Argument #1 is not a number!")
+		return
 	end
 
 	local SecondUnit = 1
@@ -110,39 +110,46 @@ function TimeModule.FormatSecondToTime(Seconds)
 	local MillenniumUnit = CenturyUnit * 10
 
 	local time_units = {
-			{ MillenniumUnit, "millennium", "millennia" },
-			{ CenturyUnit, "century", "centuries" },
-			{ DecadeUnit, "decade", "decades" },
-			{ YearUnit, "year", "years" },
-			{ MonthUnit, "month", "months" },
-			{ WeekUnit, "week", "weeks" },
-			{ DayUnit, "day", "days" },
-			{ HourUnit, "hour", "hours" },
-			{ MinuteUnit, "minute", "minutes" },
-			{ SecondUnit, "second", "seconds" }
+		{ MillenniumUnit, "millennium", "millennia" },
+		{ CenturyUnit, "century", "centuries" },
+		{ DecadeUnit, "decade", "decades" },
+		{ YearUnit, "year", "years" },
+		{ MonthUnit, "month", "months" },
+		{ WeekUnit, "week", "weeks" },
+		{ DayUnit, "day", "days" },
+		{ HourUnit, "hour", "hours" },
+		{ MinuteUnit, "minute", "minutes" },
+		{ SecondUnit, "second", "seconds" }
 	}
 
 	local result = {}
 	local added_non_zero_unit = false
 
 	for _, unit in ipairs(time_units) do
-			local value = math.floor(Seconds / unit[1])
-			Seconds = Seconds % unit[1]
-			if value ~= 0 or added_non_zero_unit then
-					table.insert(result, string.format("%d %s%s", value, unit[2], value == 1 and "" or "s"))
-					added_non_zero_unit = true
-			end
+		local value = math.floor(Seconds / unit[1])
+		Seconds = Seconds % unit[1]
+		if value ~= 0 or added_non_zero_unit then
+			table.insert(result, string.format("%d %s%s", value, unit[2], value == 1 and "" or "s"))
+			added_non_zero_unit = true
+		end
 	end
 
 	if #result ~= 0 then
-			return table.concat(result, " and ")
+		return table.concat(result, " and ")
 	else
-			return '0 seconds'
+		return '0 seconds'
 	end
 end
 
 function TimeModule.ConvertTimeUnitToSecond(Time, UnitName)
+	Time = tonumber(Time)
 	UnitName = string.lower(UnitName)
+	
+	if not Time then
+		error(OutputMark..'Time is not a valid number!!')
+		return
+	end
+	
 	local ConversionResult = nil
 	local ConversionFactors = {
 		['second'] = SecondUnit,
@@ -160,7 +167,7 @@ function TimeModule.ConvertTimeUnitToSecond(Time, UnitName)
 	if ConversionFactors[UnitName] then
 		ConversionResult = Time * ConversionFactors[UnitName]
 	else
-		warn(OutputMark .. "Invalid time unit name!!")
+		error(OutputMark .. "Invalid time unit name!!")
 	end
 
 	if ConversionResult ~= nil then
@@ -231,4 +238,4 @@ function TimeModule.UnmarkTimestamp(TimeMarkName)
 	end
 end
 
-return TimeUtilityModule
+return TimeModule
