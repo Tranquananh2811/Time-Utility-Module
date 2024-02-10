@@ -1,4 +1,4 @@
-local TimeModule = {}
+local TimeUtilityModule = {}
 
 local MarkedTimestampNames = {}
 local MarkedTimestamps = {}
@@ -60,7 +60,7 @@ end
 
 CheckForYearAndMonthUnitUpdate()
 
-function TimeModule.GetCurrentDateUnit(GetType)
+function TimeUtilityModule.GetCurrentDateUnit(GetType)
 
 	GetType = string.lower(GetType)
 
@@ -84,72 +84,54 @@ function TimeModule.GetCurrentDateUnit(GetType)
 	end
 end
 
-function TimeModule.FormatSecondToTime(Seconds)
+function TimeUtilityModule.FormatSecondToTime(Seconds)
 	Seconds = tonumber(Seconds)
 
 	if Seconds < 0 then
-		error("Cannot format number less than 0!!")
-		return
+			error("Cannot format number less than 0!!")
+			return
 	elseif Seconds == math.huge then
-		error("Cannot format math.huge to time!!")
-		return
+			error("Cannot format math.huge to time!!")
+			return
 	elseif Seconds == nil then
-		error("Argument #1 is not a number!")
-		return
+			error("Argument #1 is not a number!")
+			return
 	end
 
-	local SecondUnit = 1
-	local MinuteUnit = SecondUnit * 60
-	local HourUnit = MinuteUnit * 60
-	local DayUnit = HourUnit * 24
-	local WeekUnit = DayUnit * 7
-	local MonthUnit = DayUnit * (365.25 / 12) -- average days in a month
-	local YearUnit = DayUnit * 365
-	local DecadeUnit = YearUnit * 10
-	local CenturyUnit = DecadeUnit * 10
-	local MillenniumUnit = CenturyUnit * 10
-
-	local time_units = {
-		{ MillenniumUnit, "millennium", "millennia" },
-		{ CenturyUnit, "century", "centuries" },
-		{ DecadeUnit, "decade", "decades" },
-		{ YearUnit, "year", "years" },
-		{ MonthUnit, "month", "months" },
-		{ WeekUnit, "week", "weeks" },
-		{ DayUnit, "day", "days" },
-		{ HourUnit, "hour", "hours" },
-		{ MinuteUnit, "minute", "minutes" },
-		{ SecondUnit, "second", "seconds" }
+	local TimeUnits = {
+			{ MillenniumUnit, "millennium", "millennia" },
+			{ CenturyUnit, "century", "centuries" },
+			{ DecadeUnit, "decade", "decades" },
+			{ YearUnit, "year", "years" },
+			{ MonthUnit, "month", "months" },
+			{ WeekUnit, "week", "weeks" },
+			{ DayUnit, "day", "days" },
+			{ HourUnit, "hour", "hours" },
+			{ MinuteUnit, "minute", "minutes" },
+			{ SecondUnit, "second", "seconds" }
 	}
 
-	local result = {}
-	local added_non_zero_unit = false
+	local Result = {}
+	local AddNoneZeroUnit = false
 
-	for _, unit in ipairs(time_units) do
-		local value = math.floor(Seconds / unit[1])
-		Seconds = Seconds % unit[1]
-		if value ~= 0 or added_non_zero_unit then
-			table.insert(result, string.format("%d %s%s", value, unit[2], value == 1 and "" or "s"))
-			added_non_zero_unit = true
-		end
+	for _, unit in ipairs(TimeUnits) do
+			local value = math.floor(Seconds / unit[1])
+			Seconds = Seconds % unit[1]
+			if value ~= 0 or AddNoneZeroUnit then
+					table.insert(Result, string.format("%d %s%s", value, unit[2], value == 1 and "" or "s"))
+					AddNoneZeroUnit = false
+			end
 	end
 
-	if #result ~= 0 then
-		return table.concat(result, " and ")
+	if #Result ~= 0 then
+			return table.concat(Result, " and ")
 	else
-		return '0 seconds'
+			return '0 seconds'
 	end
 end
 
-function TimeModule.ConvertTimeUnitToSecond(Time, UnitName)
-	Time = tonumber(Time)
+function TimeUtilityModule.ConvertTimeUnitToSecond(Time, UnitName)
 	UnitName = string.lower(UnitName)
-	
-	if not Time then
-		error(OutputMark..'Time is not a valid number!!')
-		return
-	end
-	
 	local ConversionResult = nil
 	local ConversionFactors = {
 		['second'] = SecondUnit,
@@ -167,7 +149,7 @@ function TimeModule.ConvertTimeUnitToSecond(Time, UnitName)
 	if ConversionFactors[UnitName] then
 		ConversionResult = Time * ConversionFactors[UnitName]
 	else
-		error(OutputMark .. "Invalid time unit name!!")
+		warn(OutputMark .. "Invalid time unit name!!")
 	end
 
 	if ConversionResult ~= nil then
@@ -177,33 +159,24 @@ function TimeModule.ConvertTimeUnitToSecond(Time, UnitName)
 	end
 end
 
-function TimeModule.MarkTimestamp(TimeMarkName)
+function TimeUtilityModule.MarkTimestamp(TimeMarkName)
 	if type(TimeMarkName) ~= 'string' then
 		error(OutputMark .. 'Argument #1 expect to be a string not anything else!!')
 		return
 	end
 
 	if not MarkTimestampDebounces[TimeMarkName] then
-		MarkedTimestamps[TimeMarkName] = os.time()
-		table.insert(MarkedTimestampNames, TimeMarkName)
+		if MarkedTimestamps[TimeMarkName] == nil then
+			MarkedTimestamps[TimeMarkName] = os.time()
+			table.insert(MarkedTimestampNames, TimeMarkName)
+		else
+			error(OutputMark..'You cannot create multiple time stamp with the same name!!')
+		end
 		MarkTimestampDebounces[TimeMarkName] = true
 	end
 end
 
-function TimeModule:GetMarkedTimestamp(TimeMarkName)
-	if type(TimeMarkName) ~= 'string' then
-		error(OutputMark .. 'Argument #1 expect to be a string not anything else!!')
-		return
-	end
-
-	return MarkedTimestamps[TimeMarkName]
-end
-
-function TimeModule.UpdateMarkedTimestamp(TimeMarkName)
-	MarkedTimestamps[TimeMarkName] = os.time()
-end
-
-function TimeModule:ViewMarkedTimestamps()
+function TimeUtilityModule.ViewMarkedTimestamps()
 	coroutine.wrap(function()
 		for _, name in ipairs(MarkedTimestampNames) do
 			print(name .. ': ' .. (MarkedTimestamps[name] or 'No timestamp found in list!!'))
@@ -211,7 +184,7 @@ function TimeModule:ViewMarkedTimestamps()
 	end)()
 end
 
-function TimeModule.GetElapsedSecondSinceTimestamp(TimeMarkName)
+function TimeUtilityModule.GetElapsedSecondSinceTimestamp(TimeMarkName)
 	local CurrentTimestamp = os.time()
 	local MarkedTimestamp = MarkedTimestamps[TimeMarkName]
 
@@ -223,7 +196,20 @@ function TimeModule.GetElapsedSecondSinceTimestamp(TimeMarkName)
 	end
 end
 
-function TimeModule.UnmarkTimestamp(TimeMarkName)
+function TimeUtilityModule.GetMarkedTimestamp(TimeMarkName)
+	if type(TimeMarkName) ~= 'string' then
+		error(OutputMark .. 'Argument #1 expect to be a string not anything else!!')
+		return
+	end
+
+	return MarkedTimestamps[TimeMarkName]
+end
+
+function TimeUtilityModule.UpdateMarkedTimestamp(TimeMarkName)
+	MarkedTimestamps[TimeMarkName] = os.time()
+end
+
+function TimeUtilityModule.UnmarkTimestamp(TimeMarkName)
 	local Timestamp = MarkedTimestamps[TimeMarkName]
 	local TimestampName = MarkedTimestampNames[TimeMarkName]
 	local MarkTimestampDebounce = MarkTimestampDebounces[TimeMarkName]
@@ -238,4 +224,4 @@ function TimeModule.UnmarkTimestamp(TimeMarkName)
 	end
 end
 
-return TimeModule
+return TimeUtilityModule
