@@ -88,45 +88,45 @@ function TimeUtilityModule.FormatSecondToTime(Seconds)
 	Seconds = tonumber(Seconds)
 
 	if Seconds < 0 then
-			error("Cannot format number less than 0!!")
-			return
+		error("Cannot format number less than 0!!")
+		return
 	elseif Seconds == math.huge then
-			error("Cannot format math.huge to time!!")
-			return
+		error("Cannot format math.huge to time!!")
+		return
 	elseif Seconds == nil then
-			error("Argument #1 is not a number!")
-			return
+		error("Argument #1 is not a number!")
+		return
 	end
 
 	local TimeUnits = {
-			{ MillenniumUnit, "millennium", "millennia" },
-			{ CenturyUnit, "century", "centuries" },
-			{ DecadeUnit, "decade", "decades" },
-			{ YearUnit, "year", "years" },
-			{ MonthUnit, "month", "months" },
-			{ WeekUnit, "week", "weeks" },
-			{ DayUnit, "day", "days" },
-			{ HourUnit, "hour", "hours" },
-			{ MinuteUnit, "minute", "minutes" },
-			{ SecondUnit, "second", "seconds" }
+		{ MillenniumUnit, "millennium", "millennia" },
+		{ CenturyUnit, "century", "centuries" },
+		{ DecadeUnit, "decade", "decades" },
+		{ YearUnit, "year", "years" },
+		{ MonthUnit, "month", "months" },
+		{ WeekUnit, "week", "weeks" },
+		{ DayUnit, "day", "days" },
+		{ HourUnit, "hour", "hours" },
+		{ MinuteUnit, "minute", "minutes" },
+		{ SecondUnit, "second", "seconds" }
 	}
 
 	local Result = {}
 	local AddNoneZeroUnit = false
 
 	for _, unit in ipairs(TimeUnits) do
-			local value = math.floor(Seconds / unit[1])
-			Seconds = Seconds % unit[1]
-			if value ~= 0 or AddNoneZeroUnit then
-					table.insert(Result, string.format("%d %s%s", value, unit[2], value == 1 and "" or "s"))
-					AddNoneZeroUnit = false
-			end
+		local value = math.floor(Seconds / unit[1])
+		Seconds = Seconds % unit[1]
+		if value ~= 0 or AddNoneZeroUnit then
+			table.insert(Result, string.format("%d %s%s", value, unit[2], value == 1 and "" or "s"))
+			AddNoneZeroUnit = false
+		end
 	end
 
 	if #Result ~= 0 then
-			return table.concat(Result, " and ")
+		return table.concat(Result, " and ")
 	else
-			return '0 seconds'
+		return '0 seconds'
 	end
 end
 
@@ -210,14 +210,10 @@ function TimeUtilityModule.UpdateMarkedTimestamp(TimeMarkName)
 end
 
 function TimeUtilityModule.UnmarkTimestamp(TimeMarkName)
-	local Timestamp = MarkedTimestamps[TimeMarkName]
-	local TimestampName = MarkedTimestampNames[TimeMarkName]
-	local MarkTimestampDebounce = MarkTimestampDebounces[TimeMarkName]
-
-	if Timestamp then
-		Timestamp = nil
-		TimestampName = nil
-		MarkTimestampDebounce = nil
+	if MarkedTimestamps[TimeMarkName] then
+		MarkedTimestamps[TimeMarkName] = nil
+		MarkedTimestampNames[TimeMarkName] = nil
+		MarkTimestampDebounces[TimeMarkName] = nil
 		print(OutputMark .. 'Successfully un-marked time stamp!!')
 	else
 		print(OutputMark .. 'Cannot find time stamp in the list to remove!!')
