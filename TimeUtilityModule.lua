@@ -84,8 +84,9 @@ function TimeUtilityModule.GetCurrentDateUnit(GetType)
 	end
 end
 
-function TimeUtilityModule.FormatSecondToTime(Seconds)
+function TimeUtilityModule.FormatSecondToTime(FormatType, Seconds)
 	Seconds = tonumber(Seconds)
+	FormatType = string.lower(tostring(FormatType))
 
 	if Seconds < 0 then
 		error("Cannot format number less than 0!!")
@@ -118,13 +119,23 @@ function TimeUtilityModule.FormatSecondToTime(Seconds)
 		local value = math.floor(Seconds / unit[1])
 		Seconds = Seconds % unit[1]
 		if value ~= 0 or AddNoneZeroUnit then
-			table.insert(Result, string.format("%d %s%s", value, unit[2], value == 1 and "" or "s"))
-			AddNoneZeroUnit = false
+			if FormatType == 'colons' then
+				table.insert(Result, string.format("%02d", value))
+			elseif FormatType == 'time_units' then
+				table.insert(Result, string.format("%d %s%s", value, unit[2], value == 1 and "" or "s"))
+			end
+			AddNoneZeroUnit = true
 		end
 	end
 
 	if #Result ~= 0 then
-		return table.concat(Result, " and ")
+		if FormatType == 'colons' then
+			return table.concat(Result, ":")
+		elseif FormatType == 'time_units' then
+			return table.concat(Result, " and ")
+		else
+			warn(OutputMark..'Invalid FormatType to format the time!!')
+		end
 	else
 		return '0 seconds'
 	end
