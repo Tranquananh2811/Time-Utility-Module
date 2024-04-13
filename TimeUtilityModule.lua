@@ -120,13 +120,18 @@ function TimeUtilityModule.FormatSecondToTime(FormatType, Seconds)
 		Seconds = Seconds % unit[1]
 		if value ~= 0 or AddNoneZeroUnit then
 			if FormatType == 'colons' then
-				table.insert(Result, string.format("%02d", value))
+				if unit[1] ~= MinuteUnit then
+					table.insert(Result, string.format("%02d", value))
+				else
+					table.insert(Result, tostring(value))
+				end
 			elseif FormatType == 'time_units' then
 				table.insert(Result, string.format("%d %s%s", value, unit[2], value == 1 and "" or "s"))
 			end
 			AddNoneZeroUnit = true
 		end
 	end
+
 
 	if #Result ~= 0 then
 		if FormatType == 'colons' then
@@ -140,6 +145,8 @@ function TimeUtilityModule.FormatSecondToTime(FormatType, Seconds)
 		return '0 seconds'
 	end
 end
+
+
 
 function TimeUtilityModule.ConvertTimeUnitToSecond(Time, UnitName)
 	UnitName = string.lower(UnitName)
